@@ -1,0 +1,54 @@
+{
+  "user": [
+    {
+      "id": "admin",
+      "name": "Prem kumar",
+      "password": "Pk@1234",
+      "email": "pkprem21@gmail.com",
+      "phone": "9876543211",
+      "country": "india",
+      "address": "testing",
+      "gender": "male"
+    },
+    {
+      "id": "yuvasri",
+      "name": "kfjjnn ",
+      "password": "Yuvasri@",
+      "email": "yuvasri785@gmail.com",
+      "phone": "8976543218",
+      "country": "india",
+      "address": "2/1117, 5th street,\nDr.Ambedkar Nagar,\n87 veppampattu",
+      "gender": "female"
+    },
+    {
+      "id": "premkumar",
+      "name": "prem",
+      "password": "Pk@2314",
+      "email": "pkprem350@gmail.com",
+      "phone": "8122834869",
+      "country": "india",
+      "address": "2/1117, 5th street,\nDr.Ambedkar Nagar,\n87 veppampattu",
+      "gender": "male"
+    },
+    {
+      "id": "prem",
+      "name": "Premkumar",
+      "password": "Prem@210998",
+      "email": "pkprem350@gmail.com",
+      "phone": "08122834869",
+      "country": "india",
+      "address": "2/1117, 5th street,\nDr.Ambedkar Nagar,\n87 veppampattu",
+      "gender": "male"
+    },
+    {
+      "id": "Prem",
+      "name": "Prem Kumar",
+      "password": "Prem@1234",
+      "email": "pkprem2102@gmail.com",
+      "phone": "8122834869",
+      "country": "india",
+      "address": "tttt",
+      "gender": "male"
+    }
+  ]
+}
