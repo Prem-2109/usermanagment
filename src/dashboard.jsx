@@ -7,6 +7,11 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    // Detect environment - use localhost API locally, Vercel API in production
+    const isLocalhost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const apiUrl = isLocalhost ? 'http://localhost:3000/user' : '/api/users';
+
     useEffect(() => {
         const username = sessionStorage.getItem('username');
         if (!username) {
@@ -20,12 +25,14 @@ const Dashboard = () => {
 
     const fetchAllUsers = () => {
         setLoading(true);
-        fetch('http://localhost:3000/user')
+        console.log('Fetching from:', apiUrl);
+        fetch(apiUrl)
             .then((res) => {
                 if (!res.ok) throw new Error('Failed to fetch user records');
                 return res.json();
             })
             .then((data) => {
+                console.log('Users data:', data);
                 setUserList(data);
             })
             .catch((err) => {
@@ -143,4 +150,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default Dashboard
