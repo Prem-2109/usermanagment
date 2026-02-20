@@ -11,6 +11,12 @@ const Register = () => {
     const [gender, setGender] = useState('male');
     const navigate = useNavigate();
 
+    // Detect environment
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocalhost 
+        ? 'http://localhost:3000/user' 
+        : '/api/users';
+
     const Isvalidate = () => {
         let isproceed = true;
         let msg = 'Please enter value for: ';
@@ -28,15 +34,11 @@ const Register = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (Isvalidate()) {
-            // Use environment variable for API URL
-            // For localhost: http://localhost:3000/user (from .env.development)
-            // For Vercel: /api/users (from .env.production)
-            const apiUrl = import.meta.env.VITE_API_URL || '/api/users';
+            // Use localhost API for local, /api/users for Vercel
+            console.log('API URL:', apiUrl);
             
             // Generate username from email prefix
             const username = email.split('@')[0];
-            
-            console.log('API URL:', apiUrl);
             
             fetch(apiUrl, {
                 method: 'POST',
