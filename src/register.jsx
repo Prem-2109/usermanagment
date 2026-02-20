@@ -3,9 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const Register = () => {
-    const [id, setId] = useState('');
     const [name, setName] = useState('');
-    const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [country, setCountry] = useState('india');
@@ -16,9 +14,7 @@ const Register = () => {
     const Isvalidate = () => {
         let isproceed = true;
         let msg = 'Please enter value for: ';
-        if (!id) { isproceed = false; msg += 'Username '; }
         if (!name) { isproceed = false; msg += 'Full Name '; }
-        if (!password) { isproceed = false; msg += 'Password '; }
         if (!email) { isproceed = false; msg += 'Email'; }
         if (!isproceed) {
             toast.warning(msg);
@@ -32,23 +28,44 @@ const Register = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (Isvalidate()) {
-            // Use relative API path for Vercel deployment
-            const apiUrl = '/api/users';
+            // Use environment variable for API URL
+            // For localhost: http://localhost:3000/user (from .env.development)
+            // For Vercel: /api/users (from .env.production)
+            const apiUrl = import.meta.env.VITE_API_URL || '/api/users';
+            
+            // Generate username from email prefix
+            const username = email.split('@')[0];
+            
+            console.log('API URL:', apiUrl);
+            
             fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ username: id, name, password, email, phone, country, address, gender })
+                body: JSON.stringify({ username, name, email, phone, country, address, gender })
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
+                .then(res => {
+                    const status = res.status;
+                    console.log('Response status:', status);
+                    return res.json().then(data => ({ status, data })).catch(() => ({ status, data: { success: false, message: 'Invalid response' } }));
+                })
+                .then(({ status, data }) => {
+                    console.log('Response data:', data);
+                    // Handle both json-server (201 with user object) and Vercel API (success: true)
+                    const isJsonServer = data && data.username && !data.success;
+                    if (status === 201 || isJsonServer) {
+                        toast.success('Registered Successfully');
+                        navigate('/login');
+                    } else if (data.success === true || data.success === 'true') {
                         toast.success(data.message || 'Registered Successfully');
                         navigate('/login');
                     } else {
                         toast.error(data.message || 'Registration failed');
                     }
                 })
-                .catch((err) => toast.error('Failed: ' + err.message));
+                .catch((err) => {
+                    console.error('Fetch error:', err);
+                    toast.error('Failed: ' + err.message);
+                });
         }
     };
 
@@ -68,20 +85,6 @@ const Register = () => {
                     <div className="px-8 py-8">
                         <form onSubmit={handleSubmit}>
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5" htmlFor="r-user">
-                                        Username <span className="text-red-500">*</span>
-                                    </label>
-                                    <input id="r-user" className="input-modern" value={id} onChange={e => setId(e.target.value)} placeholder="johndoe" />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5" htmlFor="r-pass">
-                                        Password <span className="text-red-500">*</span>
-                                    </label>
-                                    <input id="r-pass" type="password" className="input-modern" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
-                                </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5" htmlFor="r-name">
@@ -153,9 +156,6 @@ const Register = () => {
                                 <button type="submit" className="btn-primary flex-1">
                                     Submit
                                 </button>
-                                {/* <Link to="/login" className="btn-secondary flex-1 text-center">
-                                    Already have an account?
-                                </Link> */}
                             </div>
                         </form>
                     </div>

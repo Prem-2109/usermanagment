@@ -1,5 +1,6 @@
-# TODO - Dashboard Authentication
+# TODO - Working on both localhost and Vercel
 
-- [x] Modify src/login.jsx to check for admin credentials (id: "admin", password: "Admin@21")
-- [x] If admin user → redirect to dashboard
-- [x] If regular user → redirect to home page with a message
+- [x] Create .env.development for localhost (json-server on port 3000)
+- [x] Create .env.production for Vercel (serverless API)
+- [x] Update vite.config.js with proxy configuration for API requests
+- [x] Update src/register.jsx to use environment variable VITE_API_URL

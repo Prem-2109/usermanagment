@@ -1,10 +1,15 @@
-// Simple in-memory user store
-// Note: Data will reset on server cold start in free tier
+// JSONBin.io configuration
+// Sign up at https://jsonbin.io to get your own bins
+const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || '';
+const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || '';
+
+const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
+
+// In-memory fallback (for development without JSONBin)
 let users = [
   {
     id: "admin",
     name: "Prem kumar",
-    password: "Pk@1234",
     email: "pkprem21@gmail.com",
     phone: "9876543211",
     country: "india",
@@ -13,7 +18,44 @@ let users = [
   }
 ];
 
-export default function handler(req, res) {
+// Fetch users from JSONBin or use memory
+async function getUsers() {
+  if (JSONBIN_BIN_ID && JSONBIN_API_KEY) {
+    try {
+      const response = await fetch(`${JSONBIN_BASE_URL}/b/${JSONBIN_BIN_ID}/latest`, {
+        headers: {
+          'X-Master-Key': JSONBIN_API_KEY
+        }
+      });
+      const data = await response.json();
+      return data.record?.user || [];
+    } catch (error) {
+      console.error('Error fetching from JSONBin:', error);
+    }
+  }
+  return users;
+}
+
+// Save users to JSONBin or update memory
+async function saveUsers(newUsers) {
+  if (JSONBIN_BIN_ID && JSONBIN_API_KEY) {
+    try {
+      await fetch(`${JSONBIN_BASE_URL}/b/${JSONBIN_BIN_ID}`, {
+        method: 'PUT',
+        headers: {
+          'X-Master-Key': JSONBIN_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user: newUsers })
+      });
+    } catch (error) {
+      console.error('Error saving to JSONBin:', error);
+    }
+  }
+  users = newUsers;
+}
+
+export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -24,55 +66,58 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Return all users (excluding passwords)
-    const safeUsers = users.map(({ password, ...user }) => user);
-    return res.status(200).json(safeUsers);
+    const allUsers = await getUsers();
+    return res.status(200).json(allUsers);
   }
 
   if (req.method === 'POST') {
     try {
-      const { name, email, phone, country, address, gender, username, password } = req.body;
+      const { name, email, phone, country, address, gender, username } = req.body;
 
-      // Validation
-      if (!username || !password || !email) {
+      // Validation - only email is required now
+      if (!email) {
         return res.status(400).json({ 
           success: false, 
-          message: 'Username, email and password are required' 
+          message: 'Email is required' 
         });
       }
 
+      const allUsers = await getUsers();
+
       // Check if user already exists
-      const existingUser = users.find(u => u.username === username || u.email === email);
+      const existingUser = allUsers.find(u => u.email === email);
       if (existingUser) {
         return res.status(409).json({ 
           success: false, 
-          message: 'User with this username or email already exists' 
+          message: 'User with this email already exists' 
         });
       }
 
-      // Create new user
+      // Generate username from email if not provided
+      const userId = username || email.split('@')[0];
+
+      // Create new user (no password required)
       const newUser = {
-        id: username,
+        id: userId,
         name: name || '',
         email,
         phone: phone || '',
         country: country || '',
         address: address || '',
         gender: gender || '',
-        username,
-        password
+        username: userId
       };
 
-      users.push(newUser);
+      allUsers.push(newUser);
+      await saveUsers(allUsers);
 
-      // Return user without password
-      const { password: _, ...userWithoutPassword } = newUser;
       return res.status(201).json({ 
         success: true, 
         message: 'User registered successfully',
-        user: userWithoutPassword
+        user: newUser
       });
     } catch (error) {
+      console.error('Error:', error);
       return res.status(500).json({ 
         success: false, 
         message: 'Server error' 
